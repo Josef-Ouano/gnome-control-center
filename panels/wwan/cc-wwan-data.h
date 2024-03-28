@@ -89,5 +89,40 @@ void           cc_wwan_data_apn_set_password (CcWwanDataApn *apn,
 gint           cc_wwan_data_get_priority     (CcWwanData    *self);
 void           cc_wwan_data_set_priority     (CcWwanData    *self,
                                               int            priority);
+//APN Attach Gnome Additional code Start
+const gchar   *cc_wwan_data_apn_get_initial_eps_apn      (CcWwanDataApn *apn);
+void           cc_wwan_data_apn_set_initial_eps_apn      (CcWwanDataApn *apn,
+                                                          const gchar   *apn_name);
+const gchar   *cc_wwan_data_apn_get_initial_eps_username (CcWwanDataApn *apn);
+void           cc_wwan_data_apn_set_initial_eps_username (CcWwanDataApn *apn,
+                                                          const gchar   *username);
+const gchar   *cc_wwan_data_apn_get_initial_eps_password (CcWwanDataApn *apn);
+void           cc_wwan_data_apn_set_initial_eps_password (CcWwanDataApn *apn,
+                                                          const gchar   *password);
+
+gboolean cc_wwan_data_apn_get_ipv4 (CcWwanDataApn *apn);
+gboolean cc_wwan_data_apn_get_ipv6 (CcWwanDataApn *apn);
+
+void cc_wwan_data_apn_set_iptype (CcWwanData    *self, 
+                                  CcWwanDataApn *apn,
+                                  gboolean       ipv4_enabled,
+                                  gboolean       ipv6_enabled);
+
+gboolean cc_wwan_data_apn_get_initial_eps_noauth (CcWwanDataApn *apn);
+gboolean cc_wwan_data_apn_get_initial_eps_refuse_pap  (CcWwanDataApn *apn);
+gboolean cc_wwan_data_apn_get_initial_eps_refuse_chap (CcWwanDataApn *apn);
+gboolean cc_wwan_data_apn_get_initial_eps_refuse_eap  (CcWwanDataApn *apn);
+gboolean cc_wwan_data_apn_get_initial_eps_refuse_mschap (CcWwanDataApn *apn);
+gboolean cc_wwan_data_apn_get_initial_eps_refuse_mschapv2 (CcWwanDataApn *apn);
+
+guint cc_wwan_data_apn_get_initial_eps_auth (CcWwanDataApn *apn);
+void cc_wwan_data_apn_set_initial_eps_auth (CcWwanDataApn *apn,
+                                            guint allowed_auth);
+
+guint cc_wwan_data_apn_get_initial_eps_apntype (CcWwanDataApn *apn);
+
+void cc_wwan_data_apn_set_initial_eps_apntype (CcWwanDataApn *apn,
+                                               guint         apntype);
+//APN Attach Gnome Additional code End
 
 G_END_DECLS

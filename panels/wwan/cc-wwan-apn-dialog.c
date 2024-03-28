@@ -54,6 +54,13 @@ struct _CcWwanApnDialog
   GtkCheckButton    *apn_radio_button;
   GtkScrolledWindow *apn_list_view;
   GtkStack          *apn_settings_stack;
+  
+  //APN Gnome - additional code Start
+  //GtkCheckButton    *ipv4_toggle;
+  //GtkCheckButton    *ipv6_toggle;
+  GtkDropDown       *auth_combo;
+  GtkDropDown       *attach_combo;
+  //APN Gnome - additional code End
 
   CcWwanData        *wwan_data;
   CcWwanDataApn     *apn_to_save;   /* The APN currently being edited */
@@ -139,6 +146,14 @@ cc_wwan_apn_add_clicked_cb (CcWwanApnDialog *self)
 
   gtk_widget_set_visible (GTK_WIDGET (self->add_button), FALSE);
   gtk_widget_set_visible (GTK_WIDGET (self->save_button), TRUE);
+
+  //APN Gnome Additional code start
+  //gtk_check_button_set_active (GTK_CHECK_BUTTON (self->ipv4_toggle), FALSE);
+  //gtk_check_button_set_active (GTK_CHECK_BUTTON (self->ipv6_toggle), FALSE);
+  gtk_drop_down_set_selected (GTK_DROP_DOWN (!self->auth_combo), 0);
+  gtk_drop_down_set_selected (GTK_DROP_DOWN (!self->attach_combo), 0);
+  //APN Gnome Additional code end
+
   self->apn_to_save = NULL;
   gtk_stack_set_visible_child (self->apn_settings_stack,
                                GTK_WIDGET (self->apn_edit_view));
@@ -163,6 +178,27 @@ cc_wwan_apn_save_clicked_cb (CcWwanApnDialog *self)
   cc_wwan_data_apn_set_apn (apn, apn_name);
   cc_wwan_data_apn_set_username (apn, gtk_editable_get_text (GTK_EDITABLE (self->username_entry)));
   cc_wwan_data_apn_set_password (apn, gtk_editable_get_text (GTK_EDITABLE (self->password_entry)));
+  
+  //APN Gnome - additional code start
+  /*
+  cc_wwan_data_apn_set_iptype(self->wwan_data, 
+                              apn, 
+                              //gtk_check_button_get_active(self->ipv4_toggle), 
+                              //gtk_check_button_get_active(self->ipv6_toggle));
+                              FALSE,
+                              FALSE);
+  */
+  if(gtk_drop_down_get_selected(self->attach_combo) == 1)
+  {
+    cc_wwan_data_apn_set_initial_eps_apn(apn, apn_name);
+    cc_wwan_data_apn_set_initial_eps_username (apn, gtk_editable_get_text (GTK_EDITABLE (self->username_entry)));
+    cc_wwan_data_apn_set_initial_eps_password (apn, gtk_editable_get_text (GTK_EDITABLE (self->password_entry)));
+    cc_wwan_data_apn_set_initial_eps_auth (apn,
+                                          gtk_drop_down_get_selected(self->auth_combo));
+    cc_wwan_data_apn_set_initial_eps_apntype (apn,
+                                              gtk_drop_down_get_selected(self->attach_combo));
+  }
+  //APN Gnome Additional code end
 
   cc_wwan_data_save_apn (self->wwan_data, apn, NULL, NULL, NULL);
 
@@ -242,6 +278,15 @@ cc_wwan_apn_edit_clicked_cb (CcWwanApnDialog *self,
   gtk_editable_set_text (GTK_EDITABLE (self->apn_entry), cc_wwan_data_apn_get_apn (apn));
   gtk_editable_set_text (GTK_EDITABLE (self->username_entry), cc_wwan_data_apn_get_username (apn));
   gtk_editable_set_text (GTK_EDITABLE (self->password_entry), cc_wwan_data_apn_get_password (apn));
+  
+  //APN Gnome Additional code start 
+  /*
+  gtk_check_button_set_active (GTK_CHECK_BUTTON (self->ipv4_toggle), cc_wwan_data_apn_get_ipv4 (apn));
+  gtk_check_button_set_active (GTK_CHECK_BUTTON (self->ipv6_toggle), cc_wwan_data_apn_get_ipv6 (apn));
+  */
+  gtk_drop_down_set_selected (GTK_WIDGET(self->auth_combo), cc_wwan_data_apn_get_initial_eps_auth (apn));
+  gtk_drop_down_set_selected (GTK_WIDGET(self->attach_combo), cc_wwan_data_apn_get_initial_eps_apntype (apn));
+  //APN Gnome Additional code end
 
   gtk_stack_set_visible_child (self->apn_settings_stack,
                                GTK_WIDGET (self->apn_edit_view));
@@ -397,6 +442,13 @@ cc_wwan_apn_dialog_class_init (CcWwanApnDialogClass *klass)
   gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, password_entry);
   gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, save_button);
   gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, username_entry);
+  
+  //APN Gnome - additional code start
+  //gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, ipv4_toggle);
+  //gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, ipv6_toggle);
+  gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, auth_combo);
+  gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, attach_combo);
+  //APN Gnome - additional code end
 
   gtk_widget_class_bind_template_callback (widget_class, cc_wwan_apn_back_clicked_cb);
   gtk_widget_class_bind_template_callback (widget_class, cc_wwan_apn_add_clicked_cb);
@@ -411,16 +463,16 @@ cc_wwan_apn_dialog_init (CcWwanApnDialog *self)
   gtk_widget_init_template (GTK_WIDGET (self));
 }
 
-GtkWindow *
+CcWwanApnDialog *
 cc_wwan_apn_dialog_new (GtkWindow    *parent_window,
                         CcWwanDevice *device)
 {
   g_return_val_if_fail (GTK_IS_WINDOW (parent_window), NULL);
   g_return_val_if_fail (CC_IS_WWAN_DEVICE (device), NULL);
 
-  return GTK_WINDOW (g_object_new (CC_TYPE_WWAN_APN_DIALOG,
-                                   "transient-for", parent_window,
-                                   "use-header-bar", 1,
-                                   "device", device,
-                                   NULL));
+  return g_object_new (CC_TYPE_WWAN_APN_DIALOG,
+                       "transient-for", parent_window,
+                       "use-header-bar", 1,
+                       "device", device,
+                       NULL);
 }

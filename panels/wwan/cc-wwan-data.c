@@ -32,6 +32,8 @@
 #define _GNU_SOURCE
 #include <string.h>
 #include <glib/gi18n.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <nma-mobile-providers.h>
 
 #include "cc-wwan-data.h"
@@ -616,7 +618,8 @@ wwan_data_update_apn (CcWwanData    *self,
   g_object_set (setting,
                 NM_SETTING_GSM_HOME_ONLY, self->home_only,
                 NULL);
-
+//APN ATTACH COMMENT OUT
+/*
   setting = NM_SETTING (nm_connection_get_setting_ip4_config (connection));
   if (self->priority == CC_WWAN_APN_PRIORITY_HIGH &&
       self->default_apn == apn)
@@ -634,6 +637,8 @@ wwan_data_update_apn (CcWwanData    *self,
                 NM_SETTING_IP_CONFIG_DNS_PRIORITY, dns_priority,
                 NM_SETTING_IP_CONFIG_ROUTE_METRIC, (gint64)route_metric,
                 NULL);
+*/
+//APN ATTACH COMMENT OUT
 
   if (apn->access_method && !apn->remote_connection)
     {
@@ -647,6 +652,43 @@ wwan_data_update_apn (CcWwanData    *self,
       return;
     }
 
+  //APN Gnome Additional code start 
+  /*
+  setting = NM_SETTING (nm_connection_get_setting_ppp (connection));
+	g_object_set(G_OBJECT (setting),
+              NM_SETTING_PPP_REFUSE_PAP, TRUE,
+              NM_SETTING_PPP_REFUSE_CHAP, TRUE,
+              NM_SETTING_PPP_REFUSE_EAP, FALSE,
+              NM_SETTING_PPP_REFUSE_MSCHAP, FALSE,
+              NM_SETTING_PPP_REFUSE_MSCHAPV2, TRUE,
+              NULL);
+
+  setting = NM_SETTING (nm_connection_get_setting_gsm (connection));
+  g_object_set (G_OBJECT (setting),
+            NM_SETTING_GSM_INITIAL_EPS_BEARER_CONFIGURE, TRUE,
+            //NM_SETTING_GSM_INITIAL_EPS_BEARER_APN, 'apn=sd.iijmobile.jp,ip-type=IPV4V6,allowed-auth=PAP,user=mobile@iij,password=iij',
+            NULL);
+  
+  dns_priority = CC_WWAN_DNS_PRIORITY_LOW;
+  route_metric = CC_WWAN_ROUTE_PRIORITY_LOW;
+  setting = nm_connection_get_setting_ip4_config(connection);
+  g_object_set (setting,
+          NM_SETTING_IP_CONFIG_METHOD, "disabled",
+          NM_SETTING_IP_CONFIG_DNS_PRIORITY, dns_priority,
+          NM_SETTING_IP_CONFIG_ROUTE_METRIC, (gint64)route_metric,
+          NULL);
+
+  dns_priority = CC_WWAN_DNS_PRIORITY_HIGH;
+  route_metric = CC_WWAN_ROUTE_PRIORITY_HIGH;
+  setting = nm_connection_get_setting_ip6_config(connection);
+  g_object_set (setting,
+          NM_SETTING_IP_CONFIG_METHOD, "disabled",
+          NM_SETTING_IP_CONFIG_DNS_PRIORITY, dns_priority,
+          NM_SETTING_IP_CONFIG_ROUTE_METRIC, (gint64)route_metric,
+          NULL);
+  */        
+  //APN Gnome Additional code end
+  
   setting = NM_SETTING (nm_connection_get_setting_gsm (connection));
   g_object_set (setting,
                 NM_SETTING_GSM_USERNAME, username,
@@ -1460,6 +1502,821 @@ cc_wwan_data_apn_set_password (CcWwanDataApn *apn,
                 NM_SETTING_GSM_PASSWORD, password,
                 NULL);
 }
+
+//APN Gnome - additional code start
+/**
+ * cc_wwan_data_apn_initial_eps_get_apn:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get the APN of @apn
+ *
+ * Returns: (transfer none): The APN of @apn
+ */
+const gchar *
+cc_wwan_data_apn_get_initial_eps_apn (CcWwanDataApn *apn)
+{
+  const gchar *apn_name = "";
+
+  g_return_val_if_fail (CC_IS_WWAN_DATA_APN (apn), "");
+
+  if (apn->remote_connection)
+  {
+    NMSettingGsm *setting;
+
+    setting = nm_connection_get_setting_gsm (NM_CONNECTION (apn->remote_connection));
+    apn_name = nm_setting_gsm_get_initial_eps_apn (setting);
+  }
+  /*
+  else if (apn->access_method)
+    {
+      apn_name = nma_mobile_access_method_get_3gpp_apn (apn->access_method);
+    }
+  */
+
+  return apn_name ? apn_name : "";
+}
+
+/**
+ * cc_wwan_data_apn_set_initial_eps_apn:
+ * @apn: A #CcWwanDataApn
+ * @apn_name: The apn to be used, should not be
+ * empty
+ *
+ * Set the APN of @apn to @apn_name. @apn_name is
+ * usually a URL like 窶彳xample.com窶・or a simple string
+ * like 窶彿nternet窶・ *
+ * @apn is only modified, use @cc_wwan_data_save_apn()
+ * to save the changes.
+ */
+void
+cc_wwan_data_apn_set_initial_eps_apn (CcWwanDataApn *apn,
+                                      const gchar   *apn_name)
+{
+  NMConnection *connection;
+  NMSettingGsm *setting;
+
+  g_return_if_fail (CC_IS_WWAN_DATA_APN (apn));
+  g_return_if_fail (apn_name != NULL);
+  g_return_if_fail (*apn_name != '\0');
+
+  if (g_str_equal (cc_wwan_data_apn_get_initial_eps_apn (apn), apn_name))
+    return;
+
+  apn->modified = TRUE;
+  connection = wwan_data_get_nm_connection (apn);
+  setting = nm_connection_get_setting_gsm (connection);
+  g_object_set (G_OBJECT (setting),
+                NM_SETTING_GSM_INITIAL_EPS_BEARER_APN, apn_name,
+                NULL);
+}
+
+/**
+ * cc_wwan_data_apn_get_initial_eps_username:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get the Username of @apn
+ *
+ * Returns: (transfer none): The Username of @apn
+ */
+const gchar *
+cc_wwan_data_apn_get_initial_eps_username (CcWwanDataApn *apn)
+{
+  const gchar *username = "";
+
+  g_return_val_if_fail (CC_IS_WWAN_DATA_APN (apn), "");
+
+  if (apn->remote_connection)
+  {
+    NMSettingGsm *setting;
+
+    setting = nm_connection_get_setting_gsm (NM_CONNECTION (apn->remote_connection));
+    username = nm_setting_gsm_get_initial_eps_username (setting);
+  }
+  return username ? username : "";
+}
+
+/**
+ * cc_wwan_data_apn_set_username:
+ * @apn: A #CcWwanDataAPN
+ * @username: The username to be used
+ *
+ * Set the Username of @apn to @username.
+ *
+ * @apn is only modified, use @cc_wwan_data_save_apn()
+ * to save the changes.
+ */
+void
+cc_wwan_data_apn_set_initial_eps_username (CcWwanDataApn *apn,
+                               const gchar   *username)
+{
+  NMConnection *connection;
+  NMSettingGsm *setting;
+
+  g_return_if_fail (CC_IS_WWAN_DATA_APN (apn));
+
+  if (username && !*username)
+    username = NULL;
+
+  if (g_strcmp0 (cc_wwan_data_apn_get_initial_eps_username (apn), username) == 0)
+    return;
+
+  apn->modified = TRUE;
+  connection = wwan_data_get_nm_connection (apn);
+  setting = nm_connection_get_setting_gsm (connection);
+  g_object_set (G_OBJECT (setting),
+                NM_SETTING_GSM_INITIAL_EPS_BEARER_USERNAME, username,
+                NULL);
+}
+
+/**
+ * cc_wwan_data_apn_get_password:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get the Password of @apn
+ *
+ * Returns: (transfer none): The Password of @apn
+ */
+const gchar *
+cc_wwan_data_apn_get_initial_eps_password (CcWwanDataApn *apn)
+{
+  const gchar *password = "";
+
+  g_return_val_if_fail (CC_IS_WWAN_DATA_APN (apn), "");
+
+  if (NM_IS_REMOTE_CONNECTION (apn->remote_connection))
+    {
+      g_autoptr(GVariant) secrets = NULL;
+      g_autoptr(GError) error = NULL;
+
+      secrets = nm_remote_connection_get_secrets (NM_REMOTE_CONNECTION (apn->remote_connection),
+                                                  "gsm", NULL, &error);
+
+      if (!error)
+        nm_connection_update_secrets (NM_CONNECTION (apn->remote_connection),
+                                      "gsm", secrets, &error);
+
+      if (error)
+        {
+          g_warning ("Error: %s", error->message);
+          return "";
+        }
+    }
+
+  if (apn->remote_connection)
+    {
+      NMSettingGsm *setting;
+
+      setting = nm_connection_get_setting_gsm (NM_CONNECTION (apn->remote_connection));
+      password = nm_setting_gsm_get_initial_eps_password (setting);
+    }
+  /*
+  else if (apn->access_method)
+    {
+      password = nma_mobile_access_method_get_password (apn->access_method);
+    }
+  */
+
+  return password ? password : "";
+}
+
+/**
+ * cc_wwan_data_apn_set_password:
+ * @apn: A #CcWwanDataApn
+ * @password: The password to be used
+ *
+ * Set the Password of @apn to @password.
+ *
+ * @apn is only modified, use @cc_wwan_data_save_apn()
+ * to save the changes.
+ */
+void
+cc_wwan_data_apn_set_initial_eps_password (CcWwanDataApn *apn,
+                               const gchar   *password)
+{
+  NMConnection *connection;
+  NMSettingGsm *setting;
+
+  g_return_if_fail (CC_IS_WWAN_DATA_APN (apn));
+
+  if (password && !*password)
+    password = NULL;
+
+  if (g_strcmp0 (cc_wwan_data_apn_get_initial_eps_password (apn), password) == 0)
+    return;
+
+  apn->modified = TRUE;
+  connection = wwan_data_get_nm_connection (apn);
+  setting = nm_connection_get_setting_gsm (connection);
+  g_object_set (G_OBJECT (setting),
+                NM_SETTING_GSM_INITIAL_EPS_BEARER_PASSWORD, password,
+                NULL);
+}
+
+/**
+ * cc_wwan_data_apn_get_ipv4:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get setting method for ipv4 of @apn
+ *
+ * Returns: (transfer none): The ipv4 method of @apn
+ */
+gboolean
+cc_wwan_data_apn_get_ipv4 (CcWwanDataApn *apn)
+{
+  const char *method = "disabled";
+
+  g_return_val_if_fail (CC_IS_WWAN_DATA_APN (apn), "");
+  
+  if (apn->remote_connection)
+  {
+    NMSettingIPConfig *setting;
+    setting = nm_connection_get_setting_ip4_config(NM_CONNECTION(apn->remote_connection));
+    method = nm_setting_ip_config_get_method(setting);
+  }
+  else 
+  {
+    return FALSE;
+  }
+
+  if(method == "auto") return FALSE;
+  else if(method == "disabled") return TRUE;
+}
+
+/**
+ * cc_wwan_data_apn_get_ipv6:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get setting method for ipv4 of @apn
+ *
+ * Returns: (transfer none): The ipv6 method of @apn
+ */
+gboolean
+cc_wwan_data_apn_get_ipv6 (CcWwanDataApn *apn)
+{
+  const char *method = "disabled";
+
+  g_return_val_if_fail (CC_IS_WWAN_DATA_APN (apn), "");
+
+  if (apn->remote_connection)
+  {
+    NMSettingIPConfig *setting;
+    setting = nm_connection_get_setting_ip6_config(NM_CONNECTION(apn->remote_connection));
+    method = nm_setting_ip_config_get_method(setting);
+  }
+  else 
+  {
+    return FALSE;
+  }
+
+  if(method == "auto") return FALSE;
+  else if(method == "disabled") return TRUE;
+}
+
+/**
+ * cc_wwan_data_apn_set_iptype:
+ * @apn: A #CcWwanDataApn
+ * @ipv4_enabled: The ipv4 method to be used
+ * @ipv6_enabled: The ipv6 method to be used
+ *
+ * Set the ip type of @apn.
+ *
+ * @apn is only modified, use @cc_wwan_data_save_apn()
+ * to save the changes.
+ */
+void
+cc_wwan_data_apn_set_iptype (CcWwanData *self, 
+                            CcWwanDataApn *apn,
+                            gboolean ipv4_enabled,
+                            gboolean ipv6_enabled)
+{
+  NMConnection *connection;
+  NMSettingIPConfig *setting;
+  const gchar *name, *username, *password, *apn_name;
+  gint dns_priority, route_metric;
+
+  g_return_if_fail (CC_IS_WWAN_DATA_APN(apn));
+  apn->modified = TRUE;
+  connection = wwan_data_get_nm_connection (apn);
+/*
+  if(ipv6_enabled == TRUE){
+    setting = nm_connection_get_setting_ip6_config(connection);
+    if (self->priority == CC_WWAN_APN_PRIORITY_HIGH &&
+        self->default_apn == apn)
+      {
+        dns_priority = CC_WWAN_DNS_PRIORITY_HIGH;
+        route_metric = CC_WWAN_ROUTE_PRIORITY_HIGH;
+      }
+    else
+      {
+        dns_priority = CC_WWAN_DNS_PRIORITY_LOW;
+        route_metric = CC_WWAN_ROUTE_PRIORITY_LOW;
+      }
+      g_object_set (setting,
+              NM_SETTING_IP_CONFIG_METHOD, "auto",
+              NM_SETTING_IP_CONFIG_DNS_PRIORITY, dns_priority,
+              NM_SETTING_IP_CONFIG_ROUTE_METRIC, (gint64)route_metric,
+              NULL);
+  }
+  else if(ipv6_enabled == FALSE)
+  {
+      g_object_set (setting,
+          NM_SETTING_IP_CONFIG_METHOD, "disabled",
+          NULL);
+  }
+
+  if(ipv4_enabled == TRUE || ipv6_enabled == FALSE){
+    setting = nm_connection_get_setting_ip4_config (connection);
+    if (self->priority == CC_WWAN_APN_PRIORITY_HIGH &&
+        self->default_apn == apn)
+      {
+        dns_priority = CC_WWAN_DNS_PRIORITY_HIGH;
+        route_metric = CC_WWAN_ROUTE_PRIORITY_HIGH;
+      }
+    else
+      {
+        dns_priority = CC_WWAN_DNS_PRIORITY_LOW;
+        route_metric = CC_WWAN_ROUTE_PRIORITY_LOW;
+      }
+      g_object_set(G_OBJECT (setting),
+              //NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_AUTO,
+              NM_SETTING_IP_CONFIG_METHOD, "auto",
+              NM_SETTING_IP_CONFIG_DNS_PRIORITY, dns_priority,
+              NM_SETTING_IP_CONFIG_ROUTE_METRIC, (gint64)route_metric,
+              NULL);
+  }
+  if(ipv4_enabled == FALSE){
+      g_object_set(G_OBJECT (setting),
+          //NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_DISABLED,
+          NM_SETTING_IP_CONFIG_METHOD,E "disabled",
+          NM_SETTING_IP_CONFIG_DNS_PRIORITY, dns_priority,
+          NM_SETTING_IP_CONFIG_ROUTE_METRIC, (gint64)route_metric,
+          NULL);
+  }
+  
+  */
+  
+  dns_priority = CC_WWAN_DNS_PRIORITY_HIGH;
+  route_metric = CC_WWAN_ROUTE_PRIORITY_HIGH;
+  setting = nm_connection_get_setting_ip6_config(connection);
+  g_object_set (setting,
+          NM_SETTING_IP_CONFIG_METHOD, "auto",
+          NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS, FALSE,
+          NULL);
+
+
+  dns_priority = CC_WWAN_DNS_PRIORITY_LOW;
+  route_metric = CC_WWAN_ROUTE_PRIORITY_LOW;
+  setting = nm_connection_get_setting_ip4_config(connection);
+  g_object_set (setting,
+          NM_SETTING_IP_CONFIG_METHOD, "auto",
+          NM_SETTING_IP_CONFIG_DNS_PRIORITY, dns_priority,
+          NM_SETTING_IP_CONFIG_ROUTE_METRIC, (gint64)route_metric,
+          NULL);
+
+
+  //APN Gnome - set everything to Auto
+  /*
+  setting = nm_connection_get_setting_ip6_config(connection);
+  if(ipv6_enabled == TRUE){
+    g_object_set (G_OBJECT (setting),
+            NM_SETTING_IP_CONFIG_METHOD, "auto",
+            NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS, TRUE,
+            NULL);
+  }
+  else {
+    g_object_set (G_OBJECT (setting),
+        NM_SETTING_IP_CONFIG_METHOD, "disabled",
+        NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS, TRUE,
+        NULL);
+  }
+
+  setting = nm_connection_get_setting_ip4_config (connection);
+  if(ipv4_enabled == TRUE){
+    if (self->priority == CC_WWAN_APN_PRIORITY_HIGH &&
+        self->default_apn == apn)
+      {
+        dns_priority = CC_WWAN_DNS_PRIORITY_HIGH;
+        route_metric = CC_WWAN_ROUTE_PRIORITY_HIGH;
+      }
+    else
+      {
+        dns_priority = CC_WWAN_DNS_PRIORITY_LOW;
+        route_metric = CC_WWAN_ROUTE_PRIORITY_LOW;
+      }
+      g_object_set (G_OBJECT (setting),
+              //NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_AUTO,
+              NM_SETTING_IP_CONFIG_METHOD, "auto",
+              NM_SETTING_IP_CONFIG_DNS_PRIORITY, dns_priority,
+              NM_SETTING_IP_CONFIG_ROUTE_METRIC, (gint64)route_metric,
+              NULL);
+  }
+  else{
+      g_object_set (G_OBJECT (setting),
+          NM_SETTING_IP_CONFIG_METHOD, "disabled",
+          NULL);
+  }
+  */
+  //APN Gnome Set everything to Auto
+}
+
+/**
+ * cc_wwan_data_apn_get_initial_eps_noauth:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get the authentication noauth type status of @apn
+ *
+ * Returns: (transfer none): The authentication noauth type status of @apn
+ */
+gboolean
+cc_wwan_data_apn_get_initial_eps_noauth (CcWwanDataApn *apn)
+{
+  gboolean noauth_enabled;
+
+  g_return_val_if_fail (CC_IS_WWAN_DATA_APN (apn), "");
+
+  if (apn->remote_connection)
+  {
+    NMSettingPpp *setting;
+    setting = nm_connection_get_setting_ppp(NM_CONNECTION(apn->remote_connection));
+    noauth_enabled = nm_setting_ppp_get_initial_eps_noauth(setting);
+  }
+  else if (apn->access_method)
+  {
+    return FALSE;
+  }
+  return noauth_enabled;
+}
+
+/**
+ * cc_wwan_data_apn_get_initial_eps_refuse_eap:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get the authentication EAP type status of @apn
+ *
+ * Returns: (transfer none): The authentication EAP type status of @apn
+ */
+gboolean
+cc_wwan_data_apn_get_initial_eps_refuse_eap (CcWwanDataApn *apn)
+{
+  gboolean eap_enabled;
+
+  g_return_val_if_fail (CC_IS_WWAN_DATA_APN (apn), "");
+
+  if (apn->remote_connection)
+  {
+    NMSettingPpp *setting;
+    setting = nm_connection_get_setting_ppp(NM_CONNECTION(apn->remote_connection));
+    eap_enabled = nm_setting_ppp_get_initial_eps_refuse_eap(setting);
+  }
+  else if (apn->access_method)
+  {
+    return FALSE;
+  }
+  return eap_enabled;
+}
+
+/**
+ * cc_wwan_data_apn_get_initial_eps_refuse_pap:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get the authentication PAP type status of @apn
+ *
+ * Returns: (transfer none): The authentication PAP type status of @apn
+ */
+gboolean
+cc_wwan_data_apn_get_initial_eps_refuse_pap (CcWwanDataApn *apn)
+{
+  gboolean pap_enabled;
+
+  g_return_val_if_fail (CC_IS_WWAN_DATA_APN (apn), "");
+
+  if (apn->remote_connection)
+  {
+    NMSettingPpp *setting;
+    setting = nm_connection_get_setting_ppp(NM_CONNECTION(apn->remote_connection));
+    pap_enabled = nm_setting_ppp_get_initial_eps_refuse_pap(setting);
+  }
+  else if (apn->access_method)
+  {
+    return FALSE;
+  }
+  return pap_enabled;
+}
+
+/**
+ * cc_wwan_data_apn_get_initial_eps_refuse_chap:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get the authentication CHAP type of @apn
+ *
+ * Returns: (transfer none): The authentication CHAP type status of @apn
+ */
+gboolean
+cc_wwan_data_apn_get_initial_eps_refuse_chap (CcWwanDataApn *apn)
+{
+  gboolean chap_enabled;
+
+  g_return_val_if_fail (CC_IS_WWAN_DATA_APN (apn), "");
+
+  if (apn->remote_connection)
+  {
+    NMSettingPpp *setting;
+    setting = nm_connection_get_setting_ppp(NM_CONNECTION(apn->remote_connection));
+    chap_enabled = nm_setting_ppp_get_initial_eps_refuse_chap(setting);
+  }
+  else if (apn->access_method)
+  {
+    return FALSE;
+  }
+  return chap_enabled;
+}
+
+/**
+ * cc_wwan_data_apn_get_initial_eps_refuse_mschap:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get the authentication MSCHAP type status of @apn
+ *
+ * Returns: (transfer none): The authentication MSCHAP type status of @apn
+ */
+gboolean
+cc_wwan_data_apn_get_initial_eps_refuse_mschap (CcWwanDataApn *apn)
+{
+  gboolean mschap_enabled;
+
+  g_return_val_if_fail (CC_IS_WWAN_DATA_APN (apn), "");
+
+  if (apn->remote_connection)
+  {
+    NMSettingPpp *setting;
+    setting = nm_connection_get_setting_ppp(NM_CONNECTION(apn->remote_connection));
+    mschap_enabled = nm_setting_ppp_get_initial_eps_refuse_mschap(setting);
+  }
+  else if (apn->access_method)
+  {
+    return FALSE;
+  }
+  return mschap_enabled;
+}
+
+/**
+ * cc_wwan_data_apn_get_initial_eps_refuse_mschapv2:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get the authentication MSCHAPV2 type status of @apn
+ *
+ * Returns: (transfer none): The authentication MSCHAPV2 type status of @apn
+ */
+gboolean
+cc_wwan_data_apn_get_initial_eps_refuse_mschapv2 (CcWwanDataApn *apn)
+{
+  gboolean mschapv2_enabled;
+
+  g_return_val_if_fail (CC_IS_WWAN_DATA_APN (apn), "");
+  
+  if (apn->remote_connection)
+  {
+    NMSettingPpp *setting;
+    setting = nm_connection_get_setting_ppp(NM_CONNECTION(apn->remote_connection));
+    mschapv2_enabled = nm_setting_ppp_get_initial_eps_refuse_mschapv2(setting);
+  }
+  else if (apn->access_method)
+  {
+    return FALSE;
+  }
+  return mschapv2_enabled;
+}
+
+/**
+ * cc_wwan_data_apn_get_initial_eps_auth:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get the authentication MSCHAPV2 type status of @apn
+ *
+ * Returns: (transfer none): The authentication MSCHAPV2 type status of @apn
+ */
+guint
+cc_wwan_data_apn_get_initial_eps_auth (CcWwanDataApn *apn)
+{
+  if(cc_wwan_data_apn_get_initial_eps_noauth(apn)) return 0;
+  else if(cc_wwan_data_apn_get_initial_eps_refuse_pap(apn)) return 1;
+  else if(cc_wwan_data_apn_get_initial_eps_refuse_chap(apn)) return 2;
+  else if(cc_wwan_data_apn_get_initial_eps_refuse_eap(apn)) return 3;
+  else if(cc_wwan_data_apn_get_initial_eps_refuse_mschap(apn)) return 4;
+  else if(cc_wwan_data_apn_get_initial_eps_refuse_mschapv2(apn)) return 5;
+  else return 0;
+}
+
+/**
+ * cc_wwan_data_apn_set_initial_eps_auth:
+ * @apn: A #CcWwanDataApn
+ * @pap_enabled: The PAP auth status
+ * @chap_enabled: The CHAP auth status
+ * @eap_enabled: The EAP auth status
+ * @mschap_enabled: The MSCHAP auth status
+ * @mschapv2_enabled: The MSCHAPv2 auth status
+ *
+ * Set the authentication type of @apn to @auth.
+ *
+ * @apn is only modified, use @cc_wwan_data_save_apn()
+ * to save the changes.
+ */
+void
+cc_wwan_data_apn_set_initial_eps_auth ( CcWwanDataApn *apn,
+                            guint authtype)
+{
+  NMSettingPpp *setting;
+  NMConnection *connection;
+
+  gboolean noauth_enabled;
+  gboolean refuse_pap_enabled;
+  gboolean refuse_chap_enabled;
+  gboolean refuse_eap_enabled;
+  gboolean refuse_mschap_enabled;
+  gboolean refuse_mschapv2_enabled;
+
+  g_return_if_fail (CC_IS_WWAN_DATA_APN (apn));
+  apn->modified = TRUE;
+
+  connection = wwan_data_get_nm_connection (apn);
+  setting = nm_connection_get_setting_ppp (connection);
+
+  switch(authtype)
+  {
+    case 0: //None
+      noauth_enabled = TRUE;
+      refuse_pap_enabled = TRUE;
+      refuse_chap_enabled = TRUE;
+      refuse_eap_enabled = TRUE;
+      refuse_mschap_enabled = TRUE;
+      refuse_mschapv2_enabled = TRUE;
+      break; 
+    case 1: //PAP
+      noauth_enabled = FALSE;
+      refuse_pap_enabled = FALSE;
+      refuse_chap_enabled = TRUE;
+      refuse_eap_enabled = TRUE;
+      refuse_mschap_enabled = TRUE;
+      refuse_mschapv2_enabled = TRUE;
+      break;
+    case 2: //CHAP
+      noauth_enabled = FALSE;
+      refuse_pap_enabled = TRUE;
+      refuse_chap_enabled = FALSE;
+      refuse_eap_enabled = TRUE;
+      refuse_mschap_enabled = TRUE;
+      refuse_mschapv2_enabled = TRUE;
+      break;
+    case 3: //EAP
+      noauth_enabled = FALSE;
+      refuse_pap_enabled = TRUE;
+      refuse_chap_enabled = TRUE;
+      refuse_eap_enabled = FALSE;
+      refuse_mschap_enabled = TRUE;
+      refuse_mschapv2_enabled = TRUE;
+      break;
+    case 4: //MSCHAP
+      noauth_enabled = FALSE;
+      refuse_pap_enabled = TRUE;
+      refuse_chap_enabled = TRUE;
+      refuse_eap_enabled = TRUE;
+      refuse_mschap_enabled = FALSE;
+      refuse_mschapv2_enabled = TRUE;
+      break;
+    case 5: //MSCHAPV2
+      noauth_enabled = FALSE;
+      refuse_pap_enabled = TRUE;
+      refuse_chap_enabled = TRUE;
+      refuse_eap_enabled = TRUE;
+      refuse_mschap_enabled = TRUE;
+      refuse_mschapv2_enabled = FALSE;
+      break;
+  }
+
+	g_object_set (setting,
+                NM_SETTING_PPP_INITIAL_EPS_BEARER_NOAUTH, noauth_enabled,
+                NM_SETTING_PPP_INITIAL_EPS_BEARER_REFUSE_PAP, refuse_pap_enabled,
+                NM_SETTING_PPP_INITIAL_EPS_BEARER_REFUSE_CHAP, refuse_chap_enabled,
+                NM_SETTING_PPP_INITIAL_EPS_BEARER_REFUSE_EAP, refuse_eap_enabled,
+                NM_SETTING_PPP_INITIAL_EPS_BEARER_REFUSE_MSCHAP, refuse_mschap_enabled,
+                NM_SETTING_PPP_INITIAL_EPS_BEARER_REFUSE_MSCHAPV2, refuse_mschapv2_enabled,
+                NULL);
+}
+
+/**
+ * cc_wwan_data_apn_get_initial_eps_apntype:
+ * @apn: A #CcWwanDataApn
+ *
+ * Get the authentication type of @apn
+ *
+ * Returns: (transfer none): The authentication type of @apn
+ */
+guint
+cc_wwan_data_apn_get_initial_eps_apntype (CcWwanDataApn *apn)
+{
+  gboolean init_eps_config;
+
+  g_return_val_if_fail (CC_IS_WWAN_DATA_APN (apn), "");
+
+  if (apn->remote_connection)
+  {
+    NMSettingGsm *setting;
+
+    setting = nm_connection_get_setting_gsm (NM_CONNECTION (apn->remote_connection));
+    init_eps_config = nm_setting_gsm_get_initial_eps_config(setting);
+    
+    if(init_eps_config) return 1;
+    else return 0;
+  }
+  else if (apn->access_method)
+  {
+    return 0;
+  }
+  return 0;
+}
+
+/**
+ * cc_wwan_data_apn_set_initial_eps_apntype:
+ * @apn: A #CcWwanDataApn
+ * @password: The password to be used
+ *
+ * Set the authentication type of @apn to @apntype.
+ *
+ * @apn is only modified, use @cc_wwan_data_save_apn()
+ * to save the changes.
+ */
+void
+cc_wwan_data_apn_set_initial_eps_apntype (CcWwanDataApn *apn,
+                              guint apntype)
+{
+  NMConnection *connection;
+  NMSettingGsm *setting;
+  gboolean init_eps_set = TRUE;
+
+  FILE *fptr;
+
+  const gchar *ip_type;
+  const gchar *allowed_auth;
+
+  gchar *temp_apn_setting;
+  const gchar *apn_setting = "";
+
+  g_return_if_fail (CC_IS_WWAN_DATA_APN (apn));
+
+  apn->modified = TRUE;
+  connection = wwan_data_get_nm_connection(apn);
+  setting = nm_connection_get_setting_gsm(connection);
+
+/*
+  if(ipv4_enabled && ipv6_enabled) ip_type = 'IPV4V6';
+  else if(ipv4_enabled && !ipv6_enabled) ip_type = 'IPV4';
+  else if(!ipv4_enabled && ipv6_enabled) ip_type = 'IPV6';
+
+  if(pap_enabled && !chap_enabled){ 
+    allowed_auth = 'PAP';
+  }
+  else if(!pap_enabled && chap_enabled){
+    allowed_auth = 'CHAP';
+  }
+  else if(pap_enabled && chap_enabled){
+    allowed_auth = 'PAP/CHAP';
+  }
+  else if(!pap_enabled && !chap_enabled){
+    if(eap_enabled) allowed_auth = 'EAP';
+    else if(mschap_enabled) allowed_auth = 'MSCHAP';
+    else if(mschapv2_enabled) allowed_auth = 'MSCHAPV2';
+  }
+
+  temp_apn_setting = g_strconcat('apn=',name,',ip-  else init_eps_set = FALSE;
+*/
+
+  fptr = fopen("/home/ubuntu/Documents/logs.txt","w");
+  fprintf(fptr,"%s\n","APN Internet/Attach");
+
+  if(apntype == 0){
+    fprintf(fptr,"%s\n","APN Internet");
+    g_object_set (setting,
+                  NM_SETTING_GSM_INITIAL_EPS_BEARER_CONFIGURE, FALSE,
+                  NULL);
+  }
+  else if(apntype == 1){
+    fprintf(fptr,"%s\n","APN Attach");
+    g_object_set (setting,
+                  //NM_SETTING_GSM_INITIAL_EPS_BEARER_APN, "uno",
+                  //NM_SETTING_GSM_INITIAL_EPS_BEARER_APN, apn_addr,
+                  NM_SETTING_GSM_INITIAL_EPS_BEARER_CONFIGURE, TRUE,
+                  NULL);
+  }
+  else {
+    fprintf(fptr,"%c\n","APN Internet else");
+    g_object_set (setting,
+              NM_SETTING_GSM_INITIAL_EPS_BEARER_CONFIGURE, FALSE,
+              NULL);
+  }
+
+  fclose(fptr);
+}
+//APN Gnome - additional code end
 
 gint
 cc_wwan_data_get_priority (CcWwanData *self)
