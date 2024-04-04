@@ -2,7 +2,10 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <template class="CcWwanApnDialog" parent="GtkDialog">
-    <property name="default-height">480</property>
+  <!-- APN Gnome Additional code start -->
+    <!--<property name="default-height">480</property>-->
+    <property name="default-height">510</property>
+  <!-- APN Gnome Additional code end -->
     <property name="default-width">360</property>
     <property name="hide-on-close">True</property>
     <property name="title" translatable="yes">Access Points</property>
@@ -193,14 +196,13 @@
                       </object>
                     </child>
 
-                    <!-- APN Attach Gnome Modifications Start-->
-                    <!-- IP Type -->
-                    <!--
+                    <!-- APN Gnome Additional code start -->
+                    <!-- LTE label -->
                     <child>
                       <object class="GtkLabel">
-                        <property name="halign">end</property>
+                        <property name="halign">start</property>
                         <property name="valign">center</property>
-                        <property name="label" translatable="yes">IP Type</property>
+                        <property name="label" translatable="yes">LTE</property>
                         <style>
                           <class name="dim-label"/>
                         </style>
@@ -210,46 +212,14 @@
                         </layout>
                       </object>
                     </child>
-                    <child>
-                      <object class="GtkCheckButton" id="ipv4_toggle">
-                        <property name="halign">start</property>
-                        <property name="valign">center</property>
-                        <property name="label" translatable="yes">IPv4</property>
-                        
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
-                        <layout>
-                          <property name="column">1</property>
-                          <property name="row">4</property>
-                        </layout>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkCheckButton" id="ipv6_toggle">
-                        <property name="halign">start</property>
-                        <property name="valign">center</property>
-                        <property name="label" translatable="yes">IPv6</property>
-                        <property name="margin-start">60</property>
-                        
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
-                        <layout>
-                          <property name="column">1</property>
-                          <property name="row">4</property>
-                        </layout>
-                      </object>
-                    </child>
-                    -->
 
-                    <!-- Auth -->
-                    <!--
+                    <!-- Initial EPS APN -->
                     <child>
                       <object class="GtkLabel">
-                        <property name="halign">end</property>
+                        <property name="halign">start</property>
                         <property name="valign">center</property>
-                        <property name="label" translatable="yes">Auth</property>
+                        <property name="label" translatable="yes">APN</property>
+                        <property name="mnemonic_widget">lte_apn_entry</property>
                         <style>
                           <class name="dim-label"/>
                         </style>
@@ -260,43 +230,8 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkCheckButton" id="pap_toggle">
-                        <property name="halign">start</property>
-                        <property name="valign">center</property>
-                        <property name="label" translatable="yes">PAP</property>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
-                        <layout>
-                          <property name="column">1</property>
-                          <property name="row">5</property>
-                        </layout>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkCheckButton" id="chap_toggle">
-                        <property name="halign">start</property>
-                        <property name="valign">center</property>
-                        <property name="label" translatable="yes">CHAP</property>
-                        <property name="margin-start">60</property>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
-                        <layout>
-                          <property name="column">1</property>
-                          <property name="row">5</property>
-                        </layout>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkCheckButton" id="eap_toggle">
-                        <property name="halign">start</property>
-                        <property name="valign">center</property>
-                        <property name="label" translatable="yes">EAP</property>
-                        <property name="margin-start">130</property>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
+                      <object class="GtkEntry" id="lte_apn_entry">
+                        <property name="margin-bottom">12</property>
                         <layout>
                           <property name="column">1</property>
                           <property name="row">5</property>
@@ -304,12 +239,13 @@
                       </object>
                     </child>
 
-
+                    <!-- Initial EPS Username -->
                     <child>
                       <object class="GtkLabel">
                         <property name="halign">end</property>
                         <property name="valign">center</property>
-                        <property name="label" translatable="yes"></property>
+                        <property name="label" translatable="yes">Username</property>
+                        <property name="mnemonic_widget">lte_username_entry</property>
                         <style>
                           <class name="dim-label"/>
                         </style>
@@ -320,51 +256,59 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkCheckButton" id="mschap_toggle">
-                        <property name="halign">start</property>
-                        <property name="valign">center</property>
-                        <property name="label" translatable="yes">MSCHAP</property>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
+                      <object class="GtkEntry" id="lte_username_entry">
                         <layout>
                           <property name="column">1</property>
                           <property name="row">6</property>
                         </layout>
                       </object>
                     </child>
+
+                    <!-- Initial EPS Password -->
                     <child>
-                      <object class="GtkCheckButton" id="mschapv2_toggle">
-                        <property name="halign">start</property>
+                      <object class="GtkLabel">
+                        <property name="halign">end</property>
                         <property name="valign">center</property>
-                        <property name="label" translatable="yes">MSCHAPV2</property>
-                        <property name="margin-start">90</property>
+                        <property name="label" translatable="yes">Password</property>
+                        <property name="mnemonic_widget">lte_password_entry</property>
                         <style>
                           <class name="dim-label"/>
                         </style>
                         <layout>
-                          <property name="column">1</property>
-                          <property name="row">6</property>
+                          <property name="column">0</property>
+                          <property name="row">7</property>
                         </layout>
                       </object>
-                    </child>-->
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="lte_password_entry">
+                        <property name="margin-bottom">12</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">7</property>
+                        </layout>
+                      </object>
+                    </child>
+
+                    <!--Initial EPS Auth Type -->
                     <child>
                       <object class="GtkLabel">
                         <property name="halign">end</property>
                         <property name="valign">center</property>
                         <property name="label" translatable="yes">Auth Type</property>
+                        <property name="mnemonic_widget">lte_auth_combo</property>
                         <style>
                           <class name="dim-label"/>
                         </style>
                         <layout>
                           <property name="column">0</property>
-                          <property name="row">4</property>
+                          <property name="row">8</property>
                         </layout>
                       </object>
                     </child>
                     
                     <child>
-                      <object class="GtkDropDown" id="auth_combo">
+                      <object class="GtkDropDown" id="lte_auth_combo">
                         <property name="model">
                           <object class="GtkStringList">
                             <items>
@@ -379,29 +323,30 @@
                         </property>
                         <layout>
                           <property name="column">1</property>
-                          <property name="row">4</property>
+                          <property name="row">8</property>
                         </layout>
                       </object>
                     </child>
 
-                    <!--APN type-->
+                    <!-- Initial EPS APN type -->
                     <child>
                       <object class="GtkLabel">
                         <property name="halign">end</property>
                         <property name="valign">center</property>
                         <property name="label" translatable="yes">APN Type</property>
+                        <property name="mnemonic_widget">lte_attach_combo</property>
                         <style>
                           <class name="dim-label"/>
                         </style>
                         <layout>
                           <property name="column">0</property>
-                          <property name="row">5</property>
+                          <property name="row">9</property>
                         </layout>
                       </object>
                     </child>
                     
                     <child>
-                      <object class="GtkDropDown" id="attach_combo">
+                      <object class="GtkDropDown" id="lte_attach_combo">
                         <property name="model">
                           <object class="GtkStringList">
                             <items>
@@ -410,15 +355,13 @@
                             </items>
                           </object>
                         </property>
-                        <!--<signal name="activate" handler="cc_wwan_auth_activated_dd" swapped="yes"/>-->
                         <layout>
                           <property name="column">1</property>
-                          <property name="row">5</property>
+                          <property name="row">9</property>
                         </layout>
                       </object>
                     </child>
-                    <!-- APN Attach Gnome Modifications End-->
-
+                    <!-- APN Gnome Additional code end-->
 
                   </object>
                 </child>

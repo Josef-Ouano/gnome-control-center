@@ -100,14 +100,6 @@ const gchar   *cc_wwan_data_apn_get_initial_eps_password (CcWwanDataApn *apn);
 void           cc_wwan_data_apn_set_initial_eps_password (CcWwanDataApn *apn,
                                                           const gchar   *password);
 
-gboolean cc_wwan_data_apn_get_ipv4 (CcWwanDataApn *apn);
-gboolean cc_wwan_data_apn_get_ipv6 (CcWwanDataApn *apn);
-
-void cc_wwan_data_apn_set_iptype (CcWwanData    *self, 
-                                  CcWwanDataApn *apn,
-                                  gboolean       ipv4_enabled,
-                                  gboolean       ipv6_enabled);
-
 gboolean cc_wwan_data_apn_get_initial_eps_noauth (CcWwanDataApn *apn);
 gboolean cc_wwan_data_apn_get_initial_eps_refuse_pap  (CcWwanDataApn *apn);
 gboolean cc_wwan_data_apn_get_initial_eps_refuse_chap (CcWwanDataApn *apn);

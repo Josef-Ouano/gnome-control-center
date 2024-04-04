@@ -56,10 +56,11 @@ struct _CcWwanApnDialog
   GtkStack          *apn_settings_stack;
   
   //APN Gnome - additional code Start
-  //GtkCheckButton    *ipv4_toggle;
-  //GtkCheckButton    *ipv6_toggle;
-  GtkDropDown       *auth_combo;
-  GtkDropDown       *attach_combo;
+  GtkEntry          *lte_apn_entry;
+  GtkEntry          *lte_password_entry;
+  GtkEntry          *lte_username_entry;
+  GtkDropDown       *lte_auth_combo;
+  GtkDropDown       *lte_attach_combo;
   //APN Gnome - additional code End
 
   CcWwanData        *wwan_data;
@@ -148,10 +149,11 @@ cc_wwan_apn_add_clicked_cb (CcWwanApnDialog *self)
   gtk_widget_set_visible (GTK_WIDGET (self->save_button), TRUE);
 
   //APN Gnome Additional code start
-  //gtk_check_button_set_active (GTK_CHECK_BUTTON (self->ipv4_toggle), FALSE);
-  //gtk_check_button_set_active (GTK_CHECK_BUTTON (self->ipv6_toggle), FALSE);
-  gtk_drop_down_set_selected (GTK_DROP_DOWN (!self->auth_combo), 0);
-  gtk_drop_down_set_selected (GTK_DROP_DOWN (!self->attach_combo), 0);
+  gtk_editable_set_text (GTK_EDITABLE (self->lte_apn_entry), "");
+  gtk_editable_set_text (GTK_EDITABLE (self->lte_username_entry), "");
+  gtk_editable_set_text (GTK_EDITABLE (self->lte_password_entry), "");
+  gtk_drop_down_set_selected (GTK_DROP_DOWN (!self->lte_auth_combo), 0);
+  gtk_drop_down_set_selected (GTK_DROP_DOWN (!self->lte_attach_combo), 0);
   //APN Gnome Additional code end
 
   self->apn_to_save = NULL;
@@ -180,23 +182,15 @@ cc_wwan_apn_save_clicked_cb (CcWwanApnDialog *self)
   cc_wwan_data_apn_set_password (apn, gtk_editable_get_text (GTK_EDITABLE (self->password_entry)));
   
   //APN Gnome - additional code start
-  /*
-  cc_wwan_data_apn_set_iptype(self->wwan_data, 
-                              apn, 
-                              //gtk_check_button_get_active(self->ipv4_toggle), 
-                              //gtk_check_button_get_active(self->ipv6_toggle));
-                              FALSE,
-                              FALSE);
-  */
-  if(gtk_drop_down_get_selected(self->attach_combo) == 1)
+  if(gtk_drop_down_get_selected(self->lte_attach_combo) == 1)
   {
-    cc_wwan_data_apn_set_initial_eps_apn(apn, apn_name);
-    cc_wwan_data_apn_set_initial_eps_username (apn, gtk_editable_get_text (GTK_EDITABLE (self->username_entry)));
-    cc_wwan_data_apn_set_initial_eps_password (apn, gtk_editable_get_text (GTK_EDITABLE (self->password_entry)));
+    cc_wwan_data_apn_set_initial_eps_apn(apn, gtk_editable_get_text (GTK_EDITABLE (self->lte_apn_entry)));
+    cc_wwan_data_apn_set_initial_eps_username (apn, gtk_editable_get_text (GTK_EDITABLE (self->lte_username_entry)));
+    cc_wwan_data_apn_set_initial_eps_password (apn, gtk_editable_get_text (GTK_EDITABLE (self->lte_password_entry)));
     cc_wwan_data_apn_set_initial_eps_auth (apn,
-                                          gtk_drop_down_get_selected(self->auth_combo));
+                                          gtk_drop_down_get_selected(self->lte_auth_combo));
     cc_wwan_data_apn_set_initial_eps_apntype (apn,
-                                              gtk_drop_down_get_selected(self->attach_combo));
+                                              gtk_drop_down_get_selected(self->lte_attach_combo));
   }
   //APN Gnome Additional code end
 
@@ -280,12 +274,12 @@ cc_wwan_apn_edit_clicked_cb (CcWwanApnDialog *self,
   gtk_editable_set_text (GTK_EDITABLE (self->password_entry), cc_wwan_data_apn_get_password (apn));
   
   //APN Gnome Additional code start 
-  /*
-  gtk_check_button_set_active (GTK_CHECK_BUTTON (self->ipv4_toggle), cc_wwan_data_apn_get_ipv4 (apn));
-  gtk_check_button_set_active (GTK_CHECK_BUTTON (self->ipv6_toggle), cc_wwan_data_apn_get_ipv6 (apn));
-  */
-  gtk_drop_down_set_selected (GTK_WIDGET(self->auth_combo), cc_wwan_data_apn_get_initial_eps_auth (apn));
-  gtk_drop_down_set_selected (GTK_WIDGET(self->attach_combo), cc_wwan_data_apn_get_initial_eps_apntype (apn));
+  gtk_editable_set_text (GTK_EDITABLE (self->lte_apn_entry), cc_wwan_data_apn_get_initial_eps_apn (apn));
+  gtk_editable_set_text (GTK_EDITABLE (self->lte_username_entry), cc_wwan_data_apn_get_initial_eps_username (apn));
+  gtk_editable_set_text (GTK_EDITABLE (self->lte_password_entry), cc_wwan_data_apn_get_initial_eps_password (apn));
+  gtk_drop_down_set_selected (GTK_WIDGET(self->lte_auth_combo), cc_wwan_data_apn_get_initial_eps_auth (apn));
+  //gtk_drop_down_set_selected (GTK_WIDGET(self->lte_attach_combo), cc_wwan_data_apn_get_initial_eps_apntype (apn));
+  gtk_drop_down_set_selected (GTK_WIDGET(self->lte_attach_combo), 0); //Set to default 0, because there is ModemManager cannot save initial_eps_config; nm can only set it
   //APN Gnome Additional code end
 
   gtk_stack_set_visible_child (self->apn_settings_stack,
@@ -444,10 +438,11 @@ cc_wwan_apn_dialog_class_init (CcWwanApnDialogClass *klass)
   gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, username_entry);
   
   //APN Gnome - additional code start
-  //gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, ipv4_toggle);
-  //gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, ipv6_toggle);
-  gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, auth_combo);
-  gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, attach_combo);
+  gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, lte_apn_entry);
+  gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, lte_username_entry);
+  gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, lte_password_entry);
+  gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, lte_auth_combo);
+  gtk_widget_class_bind_template_child (widget_class, CcWwanApnDialog, lte_attach_combo);
   //APN Gnome - additional code end
 
   gtk_widget_class_bind_template_callback (widget_class, cc_wwan_apn_back_clicked_cb);
