@@ -2,10 +2,7 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <template class="CcWwanApnDialog" parent="GtkDialog">
-  <!-- APN Gnome Additional code start -->
-    <!--<property name="default-height">480</property>-->
     <property name="default-height">510</property>
-  <!-- APN Gnome Additional code end -->
     <property name="default-width">360</property>
     <property name="hide-on-close">True</property>
     <property name="title" translatable="yes">Access Points</property>
@@ -196,7 +193,6 @@
                       </object>
                     </child>
 
-                    <!-- APN Gnome Additional code start -->
                     <!-- LTE label -->
                     <child>
                       <object class="GtkLabel">
@@ -361,7 +357,6 @@
                         </layout>
                       </object>
                     </child>
-                    <!-- APN Gnome Additional code end-->
 
                   </object>
                 </child>

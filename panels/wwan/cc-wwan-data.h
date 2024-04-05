@@ -89,7 +89,6 @@ void           cc_wwan_data_apn_set_password (CcWwanDataApn *apn,
 gint           cc_wwan_data_get_priority     (CcWwanData    *self);
 void           cc_wwan_data_set_priority     (CcWwanData    *self,
                                               int            priority);
-//APN Attach Gnome Additional code Start
 const gchar   *cc_wwan_data_apn_get_initial_eps_apn      (CcWwanDataApn *apn);
 void           cc_wwan_data_apn_set_initial_eps_apn      (CcWwanDataApn *apn,
                                                           const gchar   *apn_name);
@@ -115,6 +114,5 @@ guint cc_wwan_data_apn_get_initial_eps_apntype (CcWwanDataApn *apn);
 
 void cc_wwan_data_apn_set_initial_eps_apntype (CcWwanDataApn *apn,
                                                guint         apntype);
-//APN Attach Gnome Additional code End
 
 G_END_DECLS

@@ -1463,7 +1463,6 @@ cc_wwan_data_apn_set_password (CcWwanDataApn *apn,
                 NULL);
 }
 
-//APN Gnome - additional code start
 /**
  * cc_wwan_data_apn_get_initial_eps_apn:
  * @apn: A #CcWwanDataApn
@@ -1997,7 +1996,6 @@ cc_wwan_data_apn_set_initial_eps_apntype (CcWwanDataApn *apn,
               NM_SETTING_GSM_INITIAL_EPS_BEARER_CONFIGURE, init_eps_config,
               NULL);
 }
-//APN Gnome - additional code end
 
 gint
 cc_wwan_data_get_priority (CcWwanData *self)
