@@ -107,7 +107,8 @@ sudo apt-get install libgsound-dev -y &&		<br />
 sudo apt-get install libkrb5-dev -y &&			<br />	
 sudo apt-get install gperf -y &&			<br />	
 sudo apt-get install libjson-glib-dev -y &&		<br />		
-sudo apt-get install libsoup-3.0-dev &&			
+sudo apt-get install libsoup-3.0-dev &&			<br />
+sudo apt-get install libgcr-4-dev -y &&
             
 *Setup build directory		<br />		
 meson setup builddir			
