@@ -66,7 +66,6 @@ panels/multitasking/cc-multitasking-panel.ui
 panels/multitasking/gnome-multitasking-panel.desktop.in
 panels/network/cc-net-proxy-page.c
 panels/network/cc-net-proxy-page.ui
-panels/network/cc-network-panel.c
 panels/network/cc-network-panel.ui
 panels/network/cc-qr-code-dialog.c
 panels/network/cc-qr-code-dialog.ui
@@ -186,7 +185,6 @@ panels/sound/cc-fade-slider.ui
 panels/sound/cc-output-test-wheel.c
 panels/sound/cc-output-test-window.ui
 panels/sound/cc-sound-panel.ui
-panels/sound/cc-speaker-test-button.c
 panels/sound/cc-subwoofer-slider.ui
 panels/sound/cc-volume-levels-window.ui
 panels/sound/cc-volume-slider.c

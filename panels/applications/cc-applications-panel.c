@@ -31,7 +31,6 @@
 
 #include "cc-applications-panel.h"
 #include "cc-applications-row.h"
-#include "cc-info-row.h"
 #include "cc-list-row.h"
 #include "cc-default-apps-page.h"
 #include "cc-removable-media-settings.h"
@@ -108,18 +107,18 @@ struct _CcApplicationsPanel
   AdwSwitchRow    *wallpaper;
   AdwSwitchRow    *screenshot;
   AdwSwitchRow    *sound;
-  CcInfoRow       *no_sound;
+  CcListRow       *no_sound;
   AdwSwitchRow    *search;
-  CcInfoRow       *no_search;
+  CcListRow       *no_search;
   AdwSwitchRow    *camera;
-  CcInfoRow       *no_camera;
+  CcListRow       *no_camera;
   AdwSwitchRow    *location;
-  CcInfoRow       *no_location;
+  CcListRow       *no_location;
   AdwSwitchRow    *shortcuts;
   AdwSwitchRow    *microphone;
-  CcInfoRow       *no_microphone;
+  CcListRow       *no_microphone;
   AdwPreferencesGroup *other_permissions_section;
-  CcInfoRow       *builtin;
+  CcListRow       *builtin;
   AdwDialog       *builtin_dialog;
   AdwPreferencesPage *builtin_page;
   GtkListBox      *builtin_list;
@@ -137,10 +136,10 @@ struct _CcApplicationsPanel
   GtkWidget       *usage_section;
   CcListRow       *storage;
   AdwDialog       *storage_dialog;
-  CcInfoRow       *app;
-  CcInfoRow       *data;
-  CcInfoRow       *cache;
-  CcInfoRow       *total;
+  AdwActionRow    *storage_dialog_app_row;
+  AdwActionRow    *storage_dialog_data_row;
+  AdwActionRow    *storage_dialog_cache_row;
+  AdwActionRow    *storage_dialog_total_row;
   GtkButton       *clear_cache_button;
 
   guint64          app_size;
@@ -813,6 +812,7 @@ add_static_permissions (CcApplicationsPanel *self,
   g_autofree gchar *str = NULL;
   gint added = 0;
   g_autofree gchar *text = NULL;
+  g_autofree gchar *static_permissions_number = NULL;
   gboolean is_sandboxed, is_snap = FALSE;
 
   is_snap = app_id && g_str_has_prefix (app_id, PORTAL_SNAP_PREFIX);
@@ -856,6 +856,13 @@ add_static_permissions (CcApplicationsPanel *self,
 
   text = g_strdup_printf (_("<b>%s</b> requires access to the following system resources. To stop this access, the app must be removed."), g_app_info_get_display_name (info));
   adw_preferences_page_set_description (self->builtin_page, text);
+
+  static_permissions_number = g_strdup_printf (g_dngettext (GETTEXT_PACKAGE,
+                                                            "%u permission",
+                                                            "%u permissions",
+                                                            added),
+                                               added);
+  cc_list_row_set_secondary_label (self->builtin, static_permissions_number);
 
   return added > 0;
 }
@@ -1227,7 +1234,7 @@ update_total_size (CcApplicationsPanel *self)
 
   total = self->app_size + self->data_size + self->cache_size;
   formatted_size = g_format_size (total);
-  g_object_set (self->total, "info", formatted_size, NULL);
+  adw_action_row_set_subtitle (self->storage_dialog_total_row, formatted_size);
 
   cc_list_row_set_secondary_label (self->storage, formatted_size);
 }
@@ -1251,7 +1258,7 @@ set_cache_size (GObject      *source,
   self->cache_size = size;
 
   formatted_size = g_format_size (self->cache_size);
-  g_object_set (self->cache, "info", formatted_size, NULL);
+  adw_action_row_set_subtitle (self->storage_dialog_cache_row, formatted_size);
 
   gtk_widget_set_sensitive (GTK_WIDGET (self->clear_cache_button), self->cache_size > 0);
 
@@ -1263,7 +1270,9 @@ update_cache_row (CcApplicationsPanel *self,
                   const gchar         *app_id)
 {
   g_autoptr(GFile) dir = get_flatpak_app_dir (app_id, "cache");
-  g_object_set (self->cache, "info", "...", NULL);
+
+  adw_action_row_set_subtitle (self->storage_dialog_cache_row, "...");
+
   file_size_async (dir, cc_panel_get_cancellable (CC_PANEL (self)), set_cache_size, self);
 }
 
@@ -1286,7 +1295,7 @@ set_data_size (GObject      *source,
   self->data_size = size;
 
   formatted_size = g_format_size (self->data_size);
-  g_object_set (self->data, "info", formatted_size, NULL);
+  adw_action_row_set_subtitle (self->storage_dialog_data_row, formatted_size);
 
   update_total_size (self);
 }
@@ -1297,7 +1306,8 @@ update_data_row (CcApplicationsPanel *self,
 {
   g_autoptr(GFile) dir = get_flatpak_app_dir (app_id, "data");
 
-  g_object_set (self->data, "info", "...", NULL);
+  adw_action_row_set_subtitle (self->storage_dialog_data_row, "...");
+
   file_size_async (dir, cc_panel_get_cancellable (CC_PANEL (self)), set_data_size, self);
 }
 
@@ -1341,8 +1351,10 @@ update_app_row (CcApplicationsPanel *self,
     self->app_size = get_snap_app_size (app_id + strlen (PORTAL_SNAP_PREFIX));
   else
     self->app_size = get_flatpak_app_size (app_id);
+
   formatted_size = g_format_size (self->app_size);
-  g_object_set (self->app, "info", formatted_size, NULL);
+  adw_action_row_set_subtitle (self->storage_dialog_app_row, formatted_size);
+
   update_total_size (self);
 }
 
@@ -1736,7 +1748,7 @@ cc_applications_panel_class_init (CcApplicationsPanelClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/org/gnome/control-center/applications/cc-applications-panel.ui");
 
-  gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, app);
+  gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, storage_dialog_app_row);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, app_icon_image);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, app_listbox);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, app_name_label);
@@ -1748,10 +1760,10 @@ cc_applications_panel_class_init (CcApplicationsPanelClass *klass)
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, builtin_dialog);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, builtin_page);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, builtin_list);
-  gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, cache);
+  gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, storage_dialog_cache_row);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, camera);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, clear_cache_button);
-  gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, data);
+  gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, storage_dialog_data_row);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, default_apps_page);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, no_apps_page);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, app_listbox_stack);
@@ -1784,7 +1796,7 @@ cc_applications_panel_class_init (CcApplicationsPanelClass *klass)
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, sound);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, storage);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, storage_dialog);
-  gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, total);
+  gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, storage_dialog_total_row);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, usage_section);
   gtk_widget_class_bind_template_child (widget_class, CcApplicationsPanel, view_details_button);
 
@@ -1827,7 +1839,6 @@ cc_applications_panel_init (CcApplicationsPanel *self)
 
   g_resources_register (cc_applications_get_resource ());
 
-  g_type_ensure (CC_TYPE_INFO_ROW);
   g_type_ensure (CC_TYPE_LIST_ROW);
 
   gtk_widget_init_template (GTK_WIDGET (self));

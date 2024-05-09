@@ -21,7 +21,8 @@
                       <object class="AdwPreferencesGroup">
                         <child>
                           <object class="AdwClamp">
-                            <property name="maximum-size">280</property>
+                            <property name="maximum-size">400</property>
+                            <property name="tightening-threshold">330</property>
                             <child>
                               <object class="GtkSearchEntry" id="app_search_entry">
                                 <property name="placeholder_text" translatable="yes">Search apps</property>
@@ -244,10 +245,11 @@
                               </object>
                             </child>
                             <child>
-                              <object class="CcInfoRow" id="no_search">
+                              <object class="CcListRow" id="no_search">
                                 <property name="title" bind-source="search" bind-property="title" bind-flags="sync-create"/>
                                 <property name="subtitle" bind-source="search" bind-property="subtitle" bind-flags="sync-create"/>
-                                <property name="info" translatable="yes">Disabled</property>
+                                <property name="secondary-label" translatable="yes">Disabled</property>
+                                <property name="activatable">False</property>
                               </object>
                             </child>
                             <child>
@@ -291,10 +293,11 @@
                               </object>
                             </child>
                             <child>
-                              <object class="CcInfoRow" id="no_sound">
+                              <object class="CcListRow" id="no_sound">
                                 <property name="title" translatable="yes">So_unds</property>
                                 <property name="subtitle" translatable="yes">Reproduce sounds</property>
-                                <property name="info" translatable="yes">Disabled</property>
+                                <property name="secondary-label" translatable="yes">Disabled</property>
+                                <property name="activatable">False</property>
                               </object>
                             </child>
                             <child>
@@ -313,10 +316,11 @@
                               </object>
                             </child>
                             <child>
-                              <object class="CcInfoRow" id="no_camera">
+                              <object class="CcListRow" id="no_camera">
                                 <property name="title" translatable="yes">C_amera</property>
                                 <property name="subtitle" translatable="yes">Take pictures with the camera</property>
-                                <property name="info" translatable="yes">Disabled</property>
+                                <property name="secondary-label" translatable="yes">Disabled</property>
+                                <property name="activatable">False</property>
                               </object>
                             </child>
                             <child>
@@ -328,10 +332,11 @@
                               </object>
                             </child>
                             <child>
-                              <object class="CcInfoRow" id="no_microphone">
+                              <object class="CcListRow" id="no_microphone">
                                 <property name="title" translatable="yes">_Microphone</property>
                                 <property name="subtitle" translatable="yes">Record audio with the microphone</property>
-                                <property name="info" translatable="yes">Disabled</property>
+                                <property name="secondary-label" translatable="yes">Disabled</property>
+                                <property name="activatable">False</property>
                               </object>
                             </child>
                             <child>
@@ -343,10 +348,11 @@
                               </object>
                             </child>
                             <child>
-                              <object class="CcInfoRow" id="no_location">
+                              <object class="CcListRow" id="no_location">
                                 <property name="title" translatable="yes">_Location Services</property>
                                 <property name="subtitle" translatable="yes">Access device location data</property>
-                                <property name="info" translatable="yes">Disabled</property>
+                                <property name="secondary-label" translatable="yes">Disabled</property>
+                                <property name="activatable">False</property>
                               </object>
                             </child>
                           </object>
@@ -355,11 +361,10 @@
                         <child>
                           <object class="AdwPreferencesGroup" id="other_permissions_section">
                             <child>
-                              <object class="CcInfoRow" id="builtin">
-                                <property name="title" translatable="yes">Re_quired Access</property>
-                                <property name="subtitle" translatable="yes">System access that is required by the app</property>
-                                <property name="has-expander">True</property>
-                                <property name="is-link">True</property>
+                              <object class="CcListRow" id="builtin">
+                                <property name="title" translatable="yes">Re_quired Permissions</property>
+                                <property name="subtitle" translatable="yes">System permissions that the app requires</property>
+                                <property name="show-arrow">True</property>
                                 <signal name="activated" handler="adw_dialog_present" object="builtin_dialog" />
                               </object>
                             </child>
@@ -402,7 +407,7 @@
 
   <!-- Built-in Permissions dialog -->
   <object class="AdwDialog" id="builtin_dialog">
-    <property name="title" translatable="yes">Required Access</property>
+    <property name="title" translatable="yes">Required Permissions</property>
     <property name="content-width">500</property>
     <property name="content-height">400</property>
     <property name="child">
@@ -492,30 +497,38 @@
         <property name="content">
           <object class="AdwPreferencesPage">
             <property name="description" translatable="yes">How much disk space this app is occupying with app data and caches</property>
-            <child>
+             <child>
               <object class="AdwPreferencesGroup">
                 <child>
-                  <object class="CcInfoRow" id="app">
+                  <object class="AdwActionRow" id="storage_dialog_app_row">
                     <property name="title" translatable="yes">App</property>
-                    <property name="info">Unknown</property>
+                    <style>
+                      <class name="property"/>
+                    </style>
                   </object>
                 </child>
                 <child>
-                  <object class="CcInfoRow" id="data">
+                  <object class="AdwActionRow" id="storage_dialog_data_row">
                     <property name="title" translatable="yes">Data</property>
-                    <property name="info">Unknown</property>
+                    <style>
+                      <class name="property"/>
+                    </style>
                   </object>
                 </child>
                 <child>
-                  <object class="CcInfoRow" id="cache">
+                  <object class="AdwActionRow" id="storage_dialog_cache_row">
                     <property name="title" translatable="yes">Cache</property>
-                    <property name="info">Unknown</property>
+                    <style>
+                      <class name="property"/>
+                    </style>
                   </object>
                 </child>
                 <child>
-                  <object class="CcInfoRow" id="total">
-                    <property name="title" translatable="yes">&lt;b&gt;Total&lt;/b&gt;</property>
-                    <property name="info">Unknown</property>
+                  <object class="AdwActionRow" id="storage_dialog_total_row">
+                    <property name="title" translatable="yes">Total</property>
+                    <style>
+                      <class name="property"/>
+                    </style>
                   </object>
                 </child>
               </object>
